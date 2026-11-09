@@ -1,7 +1,5 @@
 # Báo cáo cá nhân — Ngày 2 Object Detection
 
-Xem [quy định nộp](../../SUBMISSION.md).
-
 ## 1. Thông tin học viên
 
 - Họ tên: Nguyễn Văn Hùng
@@ -13,25 +11,29 @@ Xem [quy định nộp](../../SUBMISSION.md).
 
 ## 2. Schema và mini guideline
 
-Xem [GUIDELINE_MINI.md](../../GUIDELINE_MINI.md): `car=0`, `truck=1`, `bus=2`, `van=3`. Mỗi xe có một box riêng ôm sát phần nhìn thấy, dừng ở rìa ảnh khi xe bị cắt khung. Ba quyết định đã ghi trong guideline:
+Schema gồm bốn lớp: `car=0`, `truck=1`, `bus=2`, `van=3`. Theo [mini guideline](../../GUIDELINE_MINI.md), mỗi xe có một box ôm sát phần nhìn thấy. Xe đỗ, bị che hoặc cắt khung vẫn được gán nhãn nếu còn đủ dấu hiệu nhận diện; box không vượt ra ngoài ảnh.
 
-- `drive_001.jpg`: xe trắng bị cột đèn che một phần vẫn gán `car`, không suy rộng phần bị che.
-- `drive_020.jpg`: xe tối màu bị cắt ở mép phải và nhòe chuyển động được gán `car` cho phần còn nhìn thấy.
-- `drive_040.jpg`: xe màu sáng dưới xe tải đỏ được xác định là `van` theo dạng thân minivan; cần giữ quyết định này nhất quán trong nhãn.
+Ba ca mơ hồ đã ghi trong guideline:
+
+- `drive_001.jpg`: xe trắng bị cột đèn che một phần vẫn được gán `car` vì còn đủ dấu hiệu nhận diện.
+- `drive_020.jpg`: xe ở mép phải bị nhòe và cắt khung được gán `car`; box dừng ở rìa ảnh.
+- `drive_040.jpg`: xe minivan sáng màu phía dưới xe tải đỏ được chọn là `van` vì có thân hộp, khoang hành khách liền cabin.
+
+Phần cần giảng viên làm rõ thêm là cách phân biệt minibus và van khi xe ở xa hoặc bị che nhiều, không nhìn rõ cửa và khoang hành khách.
 
 ## 3. Annotation và self-QC
 
-- Số file nhãn train: 50 file, tương ứng 50 ảnh train, tổng cộng 1.050 bounding box.
-- Kết quả checker và lỗi đã xử lý: Chạy `python -X utf8 -B tools/check_yolo_labels.py`, kết quả đạt cấu trúc 50/50 file nhãn hợp lệ; không có lỗi định dạng cần sửa.
-- Danh sách ít nhất 10 ảnh đã rà bằng mắt: `drive_001.jpg`, `drive_006.jpg`, `drive_012.jpg`, `drive_018.jpg`, `drive_020.jpg`, `drive_024.jpg`, `drive_028.jpg`, `drive_035.jpg`, `drive_040.jpg`, `drive_049.jpg`; rà trực tiếp ảnh có hiển thị bounding box và ID lớp.
-- Lỗi bỏ sót/box/class phát hiện khi rà và cách sửa: `drive_020.jpg` có box ở khu vực xe đỗ dưới cầu thang lấy thừa nền và chồng lên xe bên cạnh. `drive_040.jpg` có xe minivan màu sáng phía dưới xe tải đỏ đang được gán `car`, chưa nhất quán với quyết định `van` trong mini guideline. Chưa sửa nhãn trong lần rà này.
-- Commit chứa bộ 50 nhãn train và mini guideline: `5c7bcbb` — `Add 50 train annotations and completed mini guideline`. Commit này có trong lịch sử trước commit lưu kết quả gold QC `e6fdd94`.
+- Số file nhãn train: **50 file**, tổng cộng **1.050 box**.
+- Kết quả checker: **50/50 file hợp lệ**; không có lỗi cấu trúc cần sửa. Checker chỉ kiểm tra định dạng và tọa độ, không xác nhận đúng loại xe hay đủ vật thể.
+- Danh sách ảnh đã rà: `drive_001.jpg`, `drive_006.jpg`, `drive_012.jpg`, `drive_018.jpg`, `drive_020.jpg`, `drive_024.jpg`, `drive_028.jpg`, `drive_035.jpg`, `drive_040.jpg`, `drive_049.jpg`.
+- Khi rà nhãn: `drive_028.jpg` có hai box gần trùng trên xe đỗ bên phải, nhưng mang hai lớp `car` và `truck`. Trường hợp này chưa được sửa trong bộ nhãn hiện tại.
+- Commit khóa nhãn ban đầu: `5c7bcbb`.
 
 ## 4. Gold QC và rework
 
 | Chỉ số | Trước sửa | Sau sửa nếu có |
 |---|---:|---:|
-| TP | 477 | Chưa có kết quả rework |
+| TP | 477 | — |
 | FP | 573 | — |
 | FN | 176 | — |
 | Precision | 0.4543 | — |
@@ -40,61 +42,53 @@ Xem [GUIDELINE_MINI.md](../../GUIDELINE_MINI.md): `car=0`, `truck=1`, `bus=2`, `
 | mean_iou_of_matches | 0.8502 | — |
 | passed | false | — |
 
-Nguồn: [annotation_evaluation.json](../../outputs/annotation_evaluation.json), đã được lưu trong commit `e6fdd94`. Chưa có kết quả sau rework.
+Kết quả chấm tại IoU 0.50 được lưu trong [annotation_evaluation.json](../../outputs/annotation_evaluation.json). Chưa rework bộ nhãn chính nên không có số liệu sau sửa. Mean IoU 0.8502 chỉ tính trên các box đã ghép đúng; FP và FN cần được đối chiếu với ảnh để xác định lỗi bỏ sót, sai lớp hay lệch box.
 
 ## 5. Kết quả YOLO
 
-- Nguồn số liệu: `model_eval_metrics.json` trong ZIP kết quả Colab, đã đối chiếu với output notebook ngày 10/11/2026 và chép đủ bốn chỉ số vào bảng dưới đây.
-- Runtime: Colab Free, Tesla T4 14913 MiB; Python 3.13.16; Ultralytics 8.4.208; Torch 2.14.1+cu130.
-- Cấu hình: `yolo26n.pt`, `epochs=50`, `imgsz=640`, `batch=-1` (AutoBatch chọn 45), `device=0`, `seed=20260909`; 50 ảnh train và 10 ảnh eval. Giữ các tham số train trong notebook; điền URL repo cá nhân vào `REPO_URL`. Cell chuẩn bị chuyển `path` trong bản `data.yaml` ở Colab thành đường dẫn tuyệt đối; giữ nguyên split.
-- Repo được clone trong lần chạy: commit `e6fdd94`.
-- Đường dẫn best checkpoint trong phiên chạy: `/content/Day2-Lab/outputs/yolo26_runs/vehicle_annotation/weights/best.pt` (không đưa checkpoint vào Git).
+- Runtime: Google Colab Free, GPU Tesla T4; Ultralytics **8.4.208**, Torch **2.14.1+cu130**.
+- Tham số: giữ nguyên notebook với `yolo26n.pt`, 50 epoch, `imgsz=640`, `batch=-1`, seed 20260909. AutoBatch chọn batch 45; `REPO_URL` trỏ tới repo bài làm.
+- Best checkpoint: `/content/Day2-Lab/outputs/yolo26_runs/vehicle_annotation/weights/best.pt`.
 
 | Chỉ số trên 10 ảnh eval | Giá trị |
 |---|---:|
-| Precision | 0.2796477438723719 |
-| Recall | 0.3700354609929078 |
-| mAP50 | 0.34968648738257563 |
-| mAP50–95 | 0.2433633966344259 |
+| Precision | 0.2796 |
+| Recall | 0.3700 |
+| mAP50 | 0.3497 |
+| mAP50–95 | 0.2434 |
 
-Output đánh giá theo lớp đã lưu trong notebook:
+Các chỉ số lấy từ `model_eval_metrics.json` của lần chạy Colab, làm tròn đến bốn chữ số thập phân. Hai thư mục kết quả gồm [10 ảnh dự đoán eval](assets/eval_predictions/) và [log, biểu đồ YOLO](assets/yolo26_runs/), trong đó có [results.csv](assets/yolo26_runs/vehicle_annotation/results.csv) ghi đủ 50 epoch.
 
-| Lớp | Số vật thể eval | Precision | Recall | mAP50 | mAP50–95 |
-|---|---:|---:|---:|---:|---:|
-| car | 94 | 0.399 | 0.947 | 0.825 | 0.543 |
-| truck | 5 | 0.225 | 0.200 | 0.303 | 0.246 |
-| bus | 2 | 0 | 0 | 0.00651 | 0.00456 |
-| van | 12 | 0.494 | 0.333 | 0.264 | 0.180 |
+**1. Lớp nào có recall thấp nhất? Ảnh nào minh họa?**
 
-Đã lưu cả hai thư mục [eval_predictions](assets/eval_predictions/) và [yolo26_runs](assets/yolo26_runs/) từ ZIP kết quả. [results.csv](assets/yolo26_runs/vehicle_annotation/results.csv) có đủ 50 epoch; [args.yaml](assets/yolo26_runs/vehicle_annotation/args.yaml) lưu cấu hình thực tế. Chỉ số trong bảng là đánh giá lại best checkpoint, không phải hàng epoch cuối của CSV.
+Theo bảng đánh giá trên Colab, `bus` có recall thấp nhất, bằng **0**. Trong [drive_052.jpg](assets/eval_predictions/visuals/drive_052.jpg), xe buýt lớn ở giữa ảnh bị dự đoán thành `car 0.35`. Đây là ví dụ mô hình nhận sai xe buýt; tuy nhiên, [nhãn eval của ảnh](../../dataset/labels/eval/drive_052.txt) ghi xe này là ID 3 (`van`), nên ví dụ không giải thích trực tiếp recall của lớp `bus` trong bảng chấm.
 
-- [Đường cong train](assets/yolo26_runs/vehicle_annotation/results.png).
-- [Confusion matrix trên eval](assets/yolo26_runs/vehicle_eval/confusion_matrix.png).
-- [PR curve trên eval](assets/yolo26_runs/vehicle_eval/BoxPR_curve.png).
-- [Ảnh nhãn eval](assets/yolo26_runs/vehicle_eval/val_batch0_labels.jpg) và [ảnh dự đoán khi val](assets/yolo26_runs/vehicle_eval/val_batch0_pred.jpg).
+**2. Nếu mAP50 cao nhưng mAP50–95 thấp, box đang gặp vấn đề gì?**
 
-Ảnh dự đoán đủ 10 ảnh, từ [drive_051.jpg](assets/eval_predictions/visuals/drive_051.jpg) đến [drive_060.jpg](assets/eval_predictions/visuals/drive_060.jpg), với `conf=0.25`.
+Trong lần chạy này, mAP50 là **0.3497**, mAP50–95 là **0.2434**, chênh khoảng **0.1063**. Khi tăng ngưỡng IoU, box lệch vị trí, lấy thừa nền hoặc chỉ bao một phần xe dễ bị tính sai. Cần kiểm tra các cạnh box có bám sát phần xe nhìn thấy hay không, nhất là xe nhỏ, bị che và cắt khung. Chênh lệch hai chỉ số chưa đủ để kết luận nhãn train sai.
 
-Trả lời bốn câu hỏi cuối notebook:
+**3. Có lỗi phân lớp nào liên quan tới guideline không?**
 
-1. **Lớp có recall thấp nhất:** `bus`, recall bằng 0 trên hai vật thể eval. Ở [drive_051.jpg](assets/eval_predictions/visuals/drive_051.jpg), nhãn eval có một bus ở vùng trên bên phải, tâm chuẩn hóa khoảng `(0.828, 0.130)`, nhưng ảnh prediction không có box `bus` nào. Không thể dùng việc model có dự đoán `bus` ở ảnh khác để kết luận recall tốt: box còn phải khớp lớp và vị trí với nhãn eval.
+Lỗi xe buýt bị nhận thành `car` ở `drive_052.jpg` là trường hợp cần rà theo guideline. Xe có thân dài, nhiều cửa sổ và đang ở trạm xe buýt; theo định nghĩa lớp, đây là `bus`. Cần kiểm tra cách áp dụng hai lớp `bus` và `car` trong nhãn train. Ảnh dự đoán cho thấy lỗi phân lớp, nhưng chưa đủ căn cứ khẳng định lỗi này bắt nguồn từ guideline.
 
-2. **Chênh lệch mAP50 và mAP50–95:** mAP50 là 0.3497, còn mAP50–95 là 0.2434, thấp hơn khoảng 0.1063. Khi điều kiện IoU nghiêm ngặt hơn, các box chưa khớp sát sẽ mất tính đúng. Cần đối chiếu các cạnh box, phần nền thừa, box lệch tâm, xe nhỏ hoặc bị che/cắt khung. Ví dụ tại [drive_053.jpg](assets/eval_predictions/visuals/drive_053.jpg), model vẽ một box `car 0.72` lên vùng nóc xe lớn, cho thấy có dự đoán vào một phần vật thể thay vì toàn bộ phần nhìn thấy. Chênh lệch mAP riêng lẻ chưa đủ để kết luận nhãn train sai.
+**4. Vì sao không dùng 10 ảnh eval để train dù chúng có nhãn?**
 
-3. **Lỗi class có thể liên quan guideline:** ở [drive_058.jpg](assets/eval_predictions/visuals/drive_058.jpg), xe lớn màu vàng bên trái được model dự đoán `bus 0.86`, trong khi nhãn eval tại vùng này là `van` (tâm khoảng `(0.138, 0.509)`). [Confusion matrix](assets/yolo26_runs/vehicle_eval/confusion_matrix.png) cũng có tám vật thể thật `van` bị dự đoán `bus` tại thiết lập đánh giá của biểu đồ. Đây là dữ kiện cần rà tính nhất quán ở ranh giới `bus`/`van`; phần self-QC đã ghi một ca `van` bị gán `car` ở `drive_040.jpg`. Tuy nhiên, chưa thể quy toàn bộ lỗi model cho guideline: dữ liệu ít và mất cân bằng lớp cũng có thể ảnh hưởng. Tập eval chỉ có 2 bus, 5 truck, 12 van so với 94 car.
-
-4. **Không đưa eval vào train:** nếu dùng 10 ảnh eval để cập nhật trọng số rồi chấm lại trên chính chúng, kết quả sẽ không còn phản ánh khả năng xử lý ảnh ngoài tập train. Trong notebook, eval được dùng làm validation mỗi epoch và chọn `best.pt`, sau đó dùng để val/predict. Vì đã tham gia chọn checkpoint, đây là validation set, không phải test set độc lập. Giữ nguyên 50 ảnh train và 10 ảnh eval.
+Đưa eval vào train sẽ làm mô hình học từ chính những ảnh dùng để đánh giá, khiến kết quả không phản ánh đúng khả năng nhận diện ảnh mới. Notebook dùng 10 ảnh eval để validation mỗi epoch, chọn `best.pt`, rồi chạy val/predict. Vì tham gia chọn checkpoint, đây là tập validation, không phải test độc lập. Tập train giữ nguyên 50 ảnh.
 
 ## 6. Khó khăn và cách xử lý
 
 | Bước/thời điểm | Lỗi quan sát | Cách đã thử | Kết quả/còn thiếu |
 |---|---|---|---|
-| Colab, 09–10/11/2026 | `Failed to assign a backend`; banner thông báo lỗi provisioning từ Colab | Kết nối lại và Run all sau khi được cấp T4 | Hoàn tất 50 epoch, val/predict trên 10 ảnh eval; tải ZIP và lưu ảnh/log vào assets |
+| Khởi động Colab | Báo “Failed to assign a backend”, “no backends available”; Colab thông báo đang gặp lỗi cấp runtime | Kết nối lại, chạy Run all sau khi có GPU T4 | Hoàn tất 50 epoch, đánh giá 10 ảnh eval và tải `day2_colab_outputs.zip` |
 
 ## 7. Tự đánh giá theo rubric
 
-Đối chiếu [RUBRIC.md](../../RUBRIC.md): đã có 50 file nhãn đúng cấu trúc, mini guideline với ba ca mơ hồ, JSON gold QC, link Colab, bốn chỉ số model, hai thư mục ảnh/log và phần phân tích gắn với ảnh cụ thể. Chỉ số annotation được giữ nguyên theo JSON thực tế. Chưa xác minh quyền xem Colab cho người chấm hoặc việc nộp link trên LMS.
+Đối chiếu [rubric](../../RUBRIC.md), bài đã có 50 file nhãn đúng định dạng, guideline với ba ca mơ hồ, kết quả gold QC và kết quả YOLO. Notebook đã chạy đủ 50 epoch, giữ nguyên 50 ảnh train và 10 ảnh eval; báo cáo có các chỉ số và ảnh dự đoán.
+
+Về gold QC, mean IoU **0.8502** cao hơn mức 0.70, còn F1 **0.5602** thấp hơn mức 0.80 trong rubric. Chưa có kết quả rework. Việc rà 10 ảnh và chạy checker chưa đủ để khẳng định tất cả vật thể đều được gán đủ, đúng lớp và có box sát.
 
 ## 8. Công cụ AI và tài liệu tham khảo
 
-Đã dùng ChatGPT/Codex để giải thích lỗi Colab, đối chiếu tài liệu bài, trích số liệu từ JSON/log, sắp xếp assets và hỗ trợ soạn phần phân tích qua đối chiếu ảnh prediction với nhãn eval. Phần nhận xét model có hỗ trợ AI; các quan sát được dẫn tới ảnh và file kết quả cụ thể để học viên kiểm tra lại. Các ghi chép self-QC nhãn train ở mục 3 được giữ từ bản báo cáo trước. Tài liệu tham khảo gồm README, GUIDE, GUIDELINE_MINI, RUBRIC và SUBMISSION trong repo. Không đính kèm gold train hoặc thông tin đăng nhập.
+Sử dụng ChatGPT/Codex để hỗ trợ đọc lỗi Colab, đối chiếu nhãn và số liệu, góp ý phân tích ảnh và biên tập báo cáo. Các nội dung đã kiểm tra lại gồm kết quả checker, JSON gold QC, bốn chỉ số model và loại xe trong ảnh minh họa.
+
+Tài liệu tham khảo: [GUIDE.md](../../GUIDE.md), [GUIDELINE_MINI.md](../../GUIDELINE_MINI.md), [RUBRIC.md](../../RUBRIC.md), [SUBMISSION.md](../../SUBMISSION.md) và [notebook của bài](../../notebooks/day2_annotation_to_yolo.ipynb). Không sử dụng tài liệu ngoài repo.
