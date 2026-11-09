@@ -5,7 +5,7 @@ Xem [quy định nộp](../../SUBMISSION.md).
 ## 1. Thông tin học viên
 
 - Họ tên: Nguyễn Văn Hùng
-- MSSV: 202603097
+- MSSV: 2A202603097
 - Email: hunghocweb2709@gmail.com
 - Lớp: 2A
 - Link repo bài làm: https://github.com/hunghocweb/K5-L2A-DAY02-NguyenVanHung-2A202603097-ObjectDetection
@@ -44,7 +44,7 @@ Nguồn: [annotation_evaluation.json](../../outputs/annotation_evaluation.json),
 
 ## 5. Kết quả YOLO
 
-- Nguồn số liệu: [model_eval_metrics.json](assets/model_eval_metrics.json), lấy từ ZIP kết quả Colab và đối chiếu với output notebook ngày 10/11/2026.
+- Nguồn số liệu: `model_eval_metrics.json` trong ZIP kết quả Colab, đã đối chiếu với output notebook ngày 10/11/2026 và chép đủ bốn chỉ số vào bảng dưới đây.
 - Runtime: Colab Free, Tesla T4 14913 MiB; Python 3.13.16; Ultralytics 8.4.208; Torch 2.14.1+cu130.
 - Cấu hình: `yolo26n.pt`, `epochs=50`, `imgsz=640`, `batch=-1` (AutoBatch chọn 45), `device=0`, `seed=20260909`; 50 ảnh train và 10 ảnh eval. Giữ các tham số train trong notebook; điền URL repo cá nhân vào `REPO_URL`. Cell chuẩn bị chuyển `path` trong bản `data.yaml` ở Colab thành đường dẫn tuyệt đối; giữ nguyên split.
 - Repo được clone trong lần chạy: commit `e6fdd94`.
